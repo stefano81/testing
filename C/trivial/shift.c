@@ -1,12 +1,16 @@
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
-  unsigned long m = 1;
-  unsigned long b = 0;
+  unsigned long m = 1, b = m, c = 0;
 
-  for (int i = 0; i < 100; ++i) {
-    printf("%d %d %d\n", m, m <<= 1, m);
+  printf("%d\n", sizeof(unsigned long));
 
-    printf("%d %d %d\n", b, b |= m, m);
+  for (int i = 0; i < (sizeof(unsigned long) * 8); ++i) {
+    printf("%lu:\n", i);
+    printf("m: %lu\n", m);
+    printf("m<<i: %lu\n", m<<i);
+    printf("b: %lu\n", b <<= 1);
+    printf("c: %lu\n", c);
+    printf("c: %lu\n", c |= (m<<i));
   }
 }
