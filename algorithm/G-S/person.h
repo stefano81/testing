@@ -11,6 +11,7 @@ public:
  person(const person & other) : id(other.id), preferences(other.preferences) {};
   double get_preference(const unsigned & oid);
   void set_preference(const unsigned & oid, const double & val);
-  unsigned get_id();
+  unsigned get_id() const;
   unsigned get_highest(const std::set<unsigned> & tried);
+  bool prefers(const person & m, const person & m1);
 };
