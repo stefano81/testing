@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+#
+# Usage: detect_old_eclipse_plugin.py <path/to/eclipse/plugin> | xargs rm -f
+#
+#
+
 
 import os
 import sys
