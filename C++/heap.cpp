@@ -10,8 +10,7 @@
 
 #include <iostream>
 #include <cmath>
-#include <sstream>
-#include <cstdlib>
+#include <string>
 
 class heap {
 private:
@@ -102,7 +101,7 @@ int main(int argc, char *argv[]) {
   if (2 != argc)
     return 1;
 
-  heap myheap{atoi(argv[1])};
+  heap myheap{stol(argv[1])};
 
   unsigned char command;
   unsigned long v;
