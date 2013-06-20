@@ -12,21 +12,15 @@ def main():
     cat = None
     with open(sys.argv[1]) as gf:
         for line in gf:
-            print line,
             if ':' in line:
-                print 'is def!',
                 for token in line.split(' '):
                     if '()' in token:
                         cat = token[:len(token)-2]
-                        print 'DEFINING:',cat
                         #relations[cat] = set()
                 continue
-            print
 
             for token in line.strip().replace('<', ' ').replace('>', ' ').replace('|', ' ').split(' '):
-                print token,
                 if len(token) > 1 and '(' in token and ')' in token:
-                    print 'valid',
                     #relations[cat].add(token[:token.find('(')])
                     relations.setdefault(token[:token.find('(')], []).append(cat)
                 print
