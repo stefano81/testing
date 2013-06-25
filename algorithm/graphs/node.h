@@ -2,7 +2,7 @@
 
 class node {
  public:
- node(const unsigned &i, const bool& v = false, const int & c = 1) : id{i}, visit{v}, cost{c} {/*adj = {};*/};
+ node(const unsigned &i, const bool& v = false, const int& c = 1) : id(i), visit(v), cost(c) {};
 
   //  std::set<node> adj;
   bool visit;
