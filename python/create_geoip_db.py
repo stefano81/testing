@@ -6,7 +6,7 @@ import csv
 def main():
     print 'create table country (id integer primary key, country_code text);'
     print 'create table ip (id integer, start integer, end integer);'
-    print 'create table command (id integer, command text);'
+    print 'create table command (id integer, filename text, command text);'
 
     with open(sys.argv[1], r'r') as datafile:
         csv_reader = csv.reader(datafile)
