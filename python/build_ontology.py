@@ -11,19 +11,24 @@ package_pattern = re.compile('\s*package\s+(.+)\s*;')
 object_pattern = re.compile('\s*((public)|(private)|(protected)\s*)?(.+)\s+(.+)\s+(.+)\s*;')
 import_pattern = re.compile('\s*import\s*(.*)\s*;')
 
-imports = {}
 
+def get_type(jtype, package, imports):
+    if jtype in imports:
+        return imports[jtype]
+    v = jtype.lower()
+    if not ('byte' == v or 'double' == v or 'int' == v or 'boolean' == v or 'long' == v or 'string' == v):
+        return '.'.join((package, jtype))
+    return jtype
 
-def get_type(type):
-    if 'double' == type or 'int' == type or 'boolean' == type
-
-def print_if_entity(javafile):
+def extract_ontoclass(javafile):
     with open(javafile, 'r') as jfile:
         oc = False
         inClass = False
         nextPred = False
-        del package
-        
+        package = None
+        properties = []
+        imports = {}
+
         for line in jfile:
             if not line.strip():
                 continue
@@ -43,28 +48,58 @@ def print_if_entity(javafile):
                 match = oc_pattern.match(line)
                 if match:
                     oc = True
-                    print 'OC',match.group(2),
+                    c = match.group(2)
             elif not inClass:
                 match = e_pattern.match(line)
                 if match:
                     inClass = True
-                    try:
-                        if package:
-                            print '.'.join((package,match.group(1)))
-                    except NameError:
-                        print match.group(1)
-            elif inClass and not nextPred:
+                    if package:
+                        jc = '.'.join((package,match.group(1)))
+                    else:
+                        jc = match.group(1)
+            elif not nextPred:
                 match = pc_pattern.match(line)
                 if match:
-                    print 'PC',match.group(1),
+                    p = match.group(1)
                     nextPred = True
-            elif inClass and nextPred:
+            else:
                 match = object_pattern.match(line)
                 if match:
                     nextPred = False
-                    print get_type(match.group(6))
-            else:
-                print 'something went wrong"',line,'"'
+                    properties.append( (p, get_type(match.group(6), package, imports)) )
+
+    if oc:
+        return (jc, c, properties)
+    else:
+        return (None, None, None)
+
+def get_ontotype(orig_type, classes):
+    if orig_type in classes:
+        return classes[orig_type][0]
+    return orig_type
+
+def build_classes(rootdir):
+    classes = {}
+    for dirpath, dirnames, filenames in os.walk(rootdir):
+        for f in filenames:
+            if f.endswith('.java'):
+                jc, c, p = extract_ontoclass(os.path.join(dirpath, f))
+                if jc:
+                    sys.stderr.write('JavaClass: {}\n'.format(jc))
+                    sys.stderr.write('OntoClass: {}\n'.format(c))
+                    sys.stderr.write('Properties: {}\n'.format(p))
+
+                    classes[jc] = (c, p)
+                else:
+                    sys.stderr.write('{} does not define an ontology class\n'.format(os.path.join(dirpath, f)))
+
+    print "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+    for k in sorted(classes):
+        (c, p) = classes[k]
+        print '<{}>'.format(c),'a rdf:Class',
+        for pn, pt in p:
+            print ';\n\t<{}> <{}>'.format(pn, get_ontotype(pt, classes)),
+        print '.'
 
 def main():
     if not sys.argv[1:]:
@@ -73,10 +108,7 @@ def main():
         """
         return
     
-    for dirpath, dirnames, filenames in os.walk(sys.argv[1:][0]):
-        for f in filenames:
-            if f.endswith('.java'):
-                print_if_entity(os.path.join(dirpath, f))
+    classes = build_classes(sys.argv[1:][0])
 
 if __name__ == '__main__':
     main()
