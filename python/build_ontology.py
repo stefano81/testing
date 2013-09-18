@@ -75,7 +75,10 @@ def extract_ontoclass(javafile):
 
 def get_ontotype(orig_type, classes):
     if orig_type in classes:
+        sys.stderr.write('{} is in classes as {}\n'.format(orig_type, classes[orig_type][0]))
         return classes[orig_type][0]
+
+    sys.stderr.write('{} is not in classes\n'.format(orig_type))
     return orig_type
 
 def build_classes(rootdir):
@@ -84,22 +87,27 @@ def build_classes(rootdir):
         for f in filenames:
             if f.endswith('.java'):
                 jc, c, p = extract_ontoclass(os.path.join(dirpath, f))
-                if jc:
+                if jc and c and p:
                     sys.stderr.write('JavaClass: {}\n'.format(jc))
                     sys.stderr.write('OntoClass: {}\n'.format(c))
                     sys.stderr.write('Properties: {}\n'.format(p))
 
                     classes[jc] = (c, p)
-                else:
-                    sys.stderr.write('{} does not define an ontology class\n'.format(os.path.join(dirpath, f)))
+
+    sys.stderr.write('########################################\n')
+    sys.stderr.write('{}\n'.format(classes))
+    sys.stderr.write('########################################\n')
 
     print "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+    print "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
     for k in sorted(classes):
         (c, p) = classes[k]
-        print '<{}>'.format(c),'a rdf:Class',
+        print '<{}>'.format(c),'a rdfs:Class .'
         for pn, pt in p:
-            print ';\n\t<{}> <{}>'.format(pn, get_ontotype(pt, classes)),
-        print '.'
+            print '<{}> a rdf:Property;'.format(pn)
+            print '\t<{}> rdfs:range <{}>;'.format(pn, c)
+            print '\t<{}> rdfs:domain <{}>.'.format(pn, get_ontotype(pt, classes))
+        print
 
 def main():
     if not sys.argv[1:]:
