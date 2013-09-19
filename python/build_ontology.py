@@ -10,11 +10,14 @@ pc_pattern = re.compile('\s*@PredicateClass\(\s*"(.+)"\s*\)')
 package_pattern = re.compile('\s*package\s+(.+)\s*;')
 object_pattern = re.compile('\s*((public)|(private)|(protected)\s*)?(.+)\s+(.+)\s+(.+)\s*;')
 import_pattern = re.compile('\s*import\s*(.*)\s*;')
-
+set_pattern = re.compile('Set<(.*)>')
 
 def get_type(jtype, package, imports):
     if jtype in imports:
         return imports[jtype]
+    if 'Set' in jtype:
+        return jtype
+
     v = jtype.lower()
     if not ('byte' == v or 'double' == v or 'int' == v or 'boolean' == v or 'long' == v or 'string' == v):
         return '.'.join((package, jtype))
@@ -78,8 +81,15 @@ def get_ontotype(orig_type, classes):
         sys.stderr.write('{} is in classes as {}\n'.format(orig_type, classes[orig_type][0]))
         return classes[orig_type][0]
 
+    match = set_pattern.match(orig_type)
+    if match:
+        sys.stderr.write('{} is of sortable type\n'.format(orig_type))
+        return classes[match.group(1)][0]
+
     sys.stderr.write('{} is not in classes\n'.format(orig_type))
-    return orig_type
+
+    return 'xsd:{}'.format(orig_type.lower())
+
 
 def build_classes(rootdir):
     classes = {}
@@ -100,9 +110,24 @@ def build_classes(rootdir):
 
     print "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
     print "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
+    print "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
+    print
+
+    print '<http://www.gambas-ict.eu/ont/Entity> a rdfs:Class.'
+    print
+
+    print '<http://www.gambas-ict.eu/ont/SortableEntity> a rdfs:Class.'
+    print '<http://www.gambbas-ict.eu/ont/hasIndex> a rdf:Property;'
+    print '\t<http://www.gambbas-ict.eu/ont/hasIndex> rdfs:range <http://www.gambas-ict.eu/ont/OrderedEntity>;'
+    print '\t<http://www.gambbas-ict.eu/ont/hasIndex> rdfs:domain xsd:int.'
+    print
+
     for k in sorted(classes):
         (c, p) = classes[k]
-        print '<{}>'.format(c),'a rdfs:Class .'
+        if 'Sortable' in c:
+            print '<{}>'.format(c),'rdfs:subClassOf <http://www.gambbas-ict.eu/ont/SortableEntity> .'
+        else:
+            print '<{}>'.format(c),'rdfs:subClassOf <http://www.gambbas-ict.eu/ont/Entity> .'
         for pn, pt in p:
             print '<{}> a rdf:Property;'.format(pn)
             print '\t<{}> rdfs:range <{}>;'.format(pn, c)
