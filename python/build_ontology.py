@@ -159,9 +159,9 @@ def print_n3(classes):
         (c, p) = classes[k]
         print '<{}>'.format(c)
         if 'Sortable' in c:
-            print '\trdfs:subClassOf <http://www.gambbas-ict.eu/ont/SortableEntity> .'
+            print '\trdfs:subClassOf <http://www.gambbas-ict.eu/ont/SortableEntity>.'
         else:
-            print '\trdfs:subClassOf <http://www.gambbas-ict.eu/ont/Entity> .'
+            print '\trdfs:subClassOf <http://www.gambbas-ict.eu/ont/Entity>.'
         for pn, pt in p:
             print '<{}>'.format(pn)
             print '\ta rdf:Property;'
