@@ -108,6 +108,9 @@ def build_classes(rootdir):
     sys.stderr.write('{}\n'.format(classes))
     sys.stderr.write('########################################\n')
 
+    return classes
+
+def print_someformat(classes):
     print "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
     print "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
     print "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
@@ -134,14 +137,54 @@ def build_classes(rootdir):
             print '\t<{}> rdfs:domain <{}>.'.format(pn, get_ontotype(pt, classes))
         print
 
+def print_n3(classes):
+    print "@PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>."
+    print "@PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>."
+    print "@PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>."
+    print
+
+    print '<http://www.gambas-ict.eu/ont/Entity>'
+    print '\ta rdfs:Class.'
+    print
+
+    print '<http://www.gambas-ict.eu/ont/SortableEntity>'
+    print '\ta rdfs:Class.'
+    print '<http://www.gambbas-ict.eu/ont/hasIndex>'
+    print '\ta rdf:Property;'
+    print '\trdfs:range <http://www.gambas-ict.eu/ont/OrderedEntity>;'
+    print '\trdfs:domain xsd:int.'
+    print
+
+    for k in sorted(classes):
+        (c, p) = classes[k]
+        print '<{}>'.format(c)
+        if 'Sortable' in c:
+            print '\trdfs:subClassOf <http://www.gambbas-ict.eu/ont/SortableEntity> .'
+        else:
+            print '\trdfs:subClassOf <http://www.gambbas-ict.eu/ont/Entity> .'
+        for pn, pt in p:
+            print '<{}>'.format(pn)
+            print '\ta rdf:Property;'
+            print '\trdfs:range <{}>;'.format(c)
+            print '\t rdfs:domain <{}>.'.format(get_ontotype(pt, classes))
+        print
+
 def main():
-    if not sys.argv[1:]:
+    if 2 > len(sys.argv[1:]):
         print """
-        Usage: build_ontology.py <start_directory>
+        Usage: build_ontology.py <start_directory> <format>
+        Available formats:
+        Notation-3 [N3]
+        SomethingSimilar [OTHER]
         """
         return
     
-    classes = build_classes(sys.argv[1:][0])
+    classes = build_classes(sys.argv[1])
+    if sys.argv[2] == 'N3':
+        print_n3(classes)
+    elif sys.argv[2] == 'OTHER':
+        print_someformat(classes)
+
 
 if __name__ == '__main__':
     main()
