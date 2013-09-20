@@ -19,7 +19,9 @@ def get_type(jtype, package, imports):
     match = set_pattern.match(jtype)
     #if 'Set<' in jtype:
     if match:
-        return jtype
+        v = match.group(1)
+        if v in imports:
+            return jtype.replace(v, imports[v])
 
     v = jtype.lower()
     if not ('byte' == v or 'double' == v or 'int' == v or 'boolean' == v or 'long' == v or 'string' == v):
