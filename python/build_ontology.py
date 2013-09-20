@@ -12,10 +12,13 @@ object_pattern = re.compile('\s*((public)|(private)|(protected)\s*)?(.+)\s+(.+)\
 import_pattern = re.compile('\s*import\s*(.*)\s*;')
 set_pattern = re.compile('Set<(.*)>')
 
+
 def get_type(jtype, package, imports):
     if jtype in imports:
         return imports[jtype]
-    if 'Set' in jtype:
+    match = set_pattern.match(jtype)
+    #if 'Set<' in jtype:
+    if match:
         return jtype
 
     v = jtype.lower()
@@ -39,37 +42,38 @@ def extract_ontoclass(javafile):
             if not oc:
                 match = import_pattern.match(line)
                 if match:
-                    class_name = match.group(1).split('.')[-1]
-                    imports[class_name] = match.group(1)
+                    ic = match.group(1).strip()
+                    imports[ic.split('.')[-1]] = ic
+                    imports[ic] = ic
                     continue
 
                 match = package_pattern.match(line)
                 if match:
-                    package = match.group(1)
+                    package = match.group(1).strip()
                     continue
 
                 match = oc_pattern.match(line)
                 if match:
                     oc = True
-                    c = match.group(2)
+                    c = match.group(2).strip()
             elif not inClass:
                 match = e_pattern.match(line)
                 if match:
                     inClass = True
                     if package:
-                        jc = '.'.join((package,match.group(1)))
+                        jc = '.'.join((package,match.group(1))).strip()
                     else:
-                        jc = match.group(1)
+                        jc = match.group(1).strip()
             elif not nextPred:
                 match = pc_pattern.match(line)
                 if match:
-                    p = match.group(1)
+                    p = match.group(1).strip()
                     nextPred = True
             else:
                 match = object_pattern.match(line)
                 if match:
                     nextPred = False
-                    properties.append( (p, get_type(match.group(6), package, imports)) )
+                    properties.append( (p, get_type(match.group(6).strip(), package, imports)) )
 
     if oc:
         return (jc, c, properties)
@@ -83,8 +87,12 @@ def get_ontotype(orig_type, classes):
 
     match = set_pattern.match(orig_type)
     if match:
-        sys.stderr.write('{} is of sortable type\n'.format(orig_type))
-        return classes[match.group(1)][0]
+        sys.stderr.write('{} is set type\n'.format(orig_type))
+        if 'Sortable' in match.group(1).strip():
+            return classes[match.group(1).strip()][0]
+        else:
+            sys.stderr.write('### {} is in a set but not sortable\n'.format(match.group(1).strip()))
+            orig_type = match.group(1).strip()
 
     sys.stderr.write('{} is not in classes\n'.format(orig_type))
 
@@ -149,10 +157,10 @@ def print_n3(classes):
 
     print '<http://www.gambas-ict.eu/ont/SortableEntity>'
     print '\ta rdfs:Class.'
-    print '<http://www.gambbas-ict.eu/ont/hasIndex>'
-    print '\ta rdf:Property;'
-    print '\trdfs:range <http://www.gambas-ict.eu/ont/OrderedEntity>;'
-    print '\trdfs:domain xsd:int.'
+    print '\t<http://www.gambbas-ict.eu/ont/hasIndex>'
+    print '\t\ta rdf:Property;'
+    print '\t\trdfs:range <http://www.gambas-ict.eu/ont/OrderedEntity>;'
+    print '\t\trdfs:domain xsd:int.'
     print
 
     for k in sorted(classes):
@@ -163,10 +171,10 @@ def print_n3(classes):
         else:
             print '\trdfs:subClassOf <http://www.gambbas-ict.eu/ont/Entity>.'
         for pn, pt in p:
-            print '<{}>'.format(pn)
-            print '\ta rdf:Property;'
-            print '\trdfs:range <{}>;'.format(c)
-            print '\t rdfs:domain <{}>.'.format(get_ontotype(pt, classes))
+            print '\t<{}>'.format(pn)
+            print '\t\ta rdf:Property;'
+            print '\t\trdfs:range <{}>;'.format(c)
+            print '\t\trdfs:domain <{}>.'.format(get_ontotype(pt, classes))
         print
 
 def main():
