@@ -182,11 +182,11 @@ def print_n3(classes):
 def main():
     if 2 > len(sys.argv[1:]):
         print """
-        Usage: build_ontology.py <start_directory> <format>
+        Usage: {} <start_directory> <format>
         Available formats:
         Notation-3 [N3]
         SomethingSimilar [OTHER]
-        """
+        """.format(sys.argv[0])
         return
     
     classes = build_classes(sys.argv[1])
