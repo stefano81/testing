@@ -23,4 +23,10 @@ expr : ID	{ cout << $$ << ' '; }
      | TYPENAME '(' expr ')' {cout << $1 << " <cast> "; }
      ;
 
+decl :	TYPENAME declarator ';'
+     ;
+
+declarator : ID { cout << "\"" << $1 << "\" "; }
+	   ;
+
 %%
