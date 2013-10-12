@@ -1,0 +1,26 @@
+%{
+#include <iostream>
+using namespace std;
+%}
+
+%token TYPENAME ID
+%right '='
+%left '+'
+
+%glr-parser
+
+%%
+
+prog :
+     | prog stmt { cout << endl; }
+     ;
+
+stmt : expr ';'	%dprec 1
+     | decl 	%dprec 2
+     ;
+
+expr : ID	{ cout << $$ << ' '; }
+     | TYPENAME '(' expr ')' {cout << $1 << " <cast> "; }
+     ;
+
+%%
